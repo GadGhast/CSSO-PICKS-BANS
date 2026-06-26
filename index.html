@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Veto de mapas — CS VETO</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <div class="dot"></div>
+    <h1>CS<span>VETO</span></h1>
+    <span style="font-family:var(--font-mono); font-size:11px; color:var(--muted); border:1px solid var(--border); padding:2px 6px; border-radius:2px; margin-left:8px;">build v7</span>
+  </div>
+  <nav>
+    <a href="index.html" class="active">Veto en vivo</a>
+    <a href="admin.html">Admin de mapas</a>
+  </nav>
+</header>
+
+<main class="container">
+
+  <!-- ===================== PANTALLA DE SETUP ===================== -->
+  <section id="setup-screen" class="panel">
+    <h2 style="margin-bottom: 6px;">Configurar veto</h2>
+    <p style="color:var(--muted); margin-top:0; margin-bottom:24px;">
+      Define los equipos y el formato del enfrentamiento.
+    </p>
+
+    <div class="setup-grid">
+      <div class="field">
+        <label for="team-a">Equipo A</label>
+        <input id="team-a" type="text" placeholder="Team Spirit" value="Equipo A" />
+      </div>
+      <div class="field">
+        <label for="team-b">Equipo B</label>
+        <input id="team-b" type="text" placeholder="Natus Vincere" value="Equipo B" />
+      </div>
+    </div>
+
+    <div class="setup-grid">
+      <div class="field">
+        <label for="format">Formato</label>
+        <select id="format">
+          <option value="bo1">Mejor de 1 (Bo1)</option>
+          <option value="bo3" selected>Mejor de 3 (Bo3)</option>
+          <option value="bo5">Mejor de 5 (Bo5)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="starts">Empieza vetando</label>
+        <select id="starts">
+          <option value="A">Equipo A</option>
+          <option value="B">Equipo B</option>
+          <option value="random" selected>Aleatorio (coin flip)</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="setup-error" style="color: var(--ban); font-size: 13px; margin-bottom: 14px;"></div>
+
+    <button id="start-btn" class="primary">▶ Iniciar veto</button>
+  </section>
+
+  <!-- ===================== PANTALLA DE VETO ===================== -->
+  <section id="veto-screen" style="display:none;">
+    <div id="turn-banner" class="turn-banner">
+      <div class="who">Turno: <span id="turn-team">—</span></div>
+      <div class="action-tag" id="turn-action">BAN</div>
+    </div>
+
+    <div class="two-col">
+      <div id="maps-grid" class="map-grid"></div>
+
+      <div>
+        <div class="terminal" id="terminal"></div>
+        <button id="reset-btn" style="margin-top:12px; width:100%;">↻ Reiniciar veto</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== PANTALLA DE RESULTADO ===================== -->
+  <section id="result-screen" class="panel" style="display:none;">
+    <h2 style="margin-bottom: 18px;">Veto completado</h2>
+    <ul class="result-list" id="result-list"></ul>
+    <button id="reset-btn-2" class="primary" style="margin-top:20px;">↻ Nuevo veto</button>
+  </section>
+
+</main>
+
+<script type="module" src="js/veto.js?v=7"></script>
+</body>
+</html>
