@@ -194,23 +194,23 @@ label {
   border-color: var(--ban);
   box-shadow: 0 0 0 2px var(--ban);
 }
-.map-card.banned::after { opacity: 1; background: rgba(224, 57, 43, 0.32); }
+.map-card.banned::after { opacity: 1; background: rgba(224, 57, 43, 0.12); }
 
 .map-card.picked {
   border-color: var(--pick);
   box-shadow: 0 0 0 2px var(--pick);
 }
-.map-card.picked::after { opacity: 1; background: rgba(76, 209, 122, 0.28); }
+.map-card.picked::after { opacity: 1; background: rgba(76, 209, 122, 0.11); }
 
 .map-card.decider {
   border-color: var(--decider);
   box-shadow: 0 0 0 2px var(--decider);
 }
-.map-card.decider::after { opacity: 1; background: rgba(255, 210, 63, 0.25); }
+.map-card.decider::after { opacity: 1; background: rgba(255, 210, 63, 0.1); }
 
-.map-card.banned img { filter: saturate(0.4) brightness(0.75); }
-.map-card.picked img { filter: saturate(1.05) brightness(0.95); }
-.map-card.decider img { filter: saturate(1.05) brightness(0.95); }
+.map-card.banned img { filter: saturate(0.55) brightness(0.85); }
+.map-card.picked img { filter: saturate(1.0) brightness(1); }
+.map-card.decider img { filter: saturate(1.0) brightness(1); }
 
 .map-card img {
   width: 100%;
@@ -403,3 +403,122 @@ footer.note {
   color: var(--muted);
   font-size: 12px;
 }
+
+/* ============================================================
+   TEAM GRID (admin) — tarjetas de equipo con logo
+   ============================================================ */
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 16px;
+}
+.team-card {
+  position: relative;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.team-card .logo-wrap {
+  width: 44px; height: 44px;
+  border-radius: 4px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.team-card .logo-wrap img {
+  width: 100%; height: 100%; object-fit: contain;
+}
+.team-card .logo-wrap .no-logo {
+  font-family: var(--font-display);
+  font-size: 16px;
+  color: var(--muted);
+}
+.team-card .team-name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 15px;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+.team-card .remove-btn {
+  position: absolute;
+  top: 6px; right: 6px;
+  z-index: 5;
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  background: rgba(10,13,16,0.85);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0;
+  cursor: pointer;
+}
+.team-card .remove-btn:hover { color: #fff; background: var(--ban); border-color: var(--ban); }
+
+/* ============================================================
+   TEAM PICKER (pantalla de veto) — chips seleccionables con logo
+   ============================================================ */
+.team-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.team-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px 8px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--panel-2);
+  cursor: pointer;
+  transition: 0.15s;
+}
+.team-chip:hover { border-color: var(--accent); }
+.team-chip .logo-wrap {
+  width: 28px; height: 28px;
+  border-radius: 3px;
+  background: var(--panel);
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.team-chip .logo-wrap img { width: 100%; height: 100%; object-fit: contain; }
+.team-chip .logo-wrap .no-logo { font-family: var(--font-display); font-size: 12px; color: var(--muted); }
+.team-chip .chip-name {
+  font-family: var(--font-display);
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.team-chip.selected {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+}
+.team-chip.taken {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+.team-chip.taken:hover { border-color: var(--border); }
+
+/* Logo del equipo dentro del banner de turno */
+.turn-banner .who {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.turn-logo {
+  width: 26px; height: 26px;
+  object-fit: contain;
+  border-radius: 3px;
+  display: none;
+}
+.turn-logo.visible { display: inline-block; }
