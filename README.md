@@ -9,14 +9,15 @@ el veto de mapas de un enfrentamiento de esports, con gestión de mapas
 ```
 csgo-veto/
 ├── index.html          → Pantalla pública de veto (setup → veto → resultado)
-├── admin.html           → Panel de administración de mapas (CRUD)
+├── admin.html           → Panel de administración de mapas y equipos (CRUD)
 ├── css/
 │   └── style.css         → Estilos compartidos (tema táctico/consola)
 ├── js/
 │   ├── firebase-config.js → Credenciales de tu proyecto Firebase (EDITAR)
 │   ├── maps-service.js    → Acceso a Firestore + Storage (CRUD de mapas)
-│   ├── admin.js            → Lógica del panel admin
-│   └── veto.js              → Lógica del veto (secuencia, terminal, resultado)
+│   ├── teams-service.js    → Acceso a Firestore + Storage (CRUD de equipos)
+│   ├── admin.js              → Lógica del panel admin (mapas y equipos)
+│   └── veto.js                 → Lógica del veto (secuencia, terminal, resultado)
 └── README.md
 ```
 
@@ -49,6 +50,10 @@ service cloud.firestore {
       allow read: if true;
       allow write: if true; // ⚠️ cualquiera puede escribir, solo para pruebas
     }
+    match /teams/{teamId} {
+      allow read: if true;
+      allow write: if true; // ⚠️ cualquiera puede escribir, solo para pruebas
+    }
   }
 }
 ```
@@ -61,13 +66,17 @@ service firebase.storage {
       allow read: if true;
       allow write: if true; // ⚠️ solo para pruebas
     }
+    match /teams/{fileName} {
+      allow read: if true;
+      allow write: if true; // ⚠️ solo para pruebas
+    }
   }
 }
 ```
 
 ### Opción recomendada (con autenticación para el admin)
 Si vas a publicar esto, protege la escritura para que solo tú (o tu equipo)
-pueda agregar/borrar mapas:
+pueda agregar/borrar mapas y equipos:
 1. Activa **Authentication → Email/contraseña** (o Google) en Firebase.
 2. Crea tu usuario admin desde la consola de Firebase.
 3. En `admin.html`/`admin.js` agrega un login con
@@ -75,6 +84,10 @@ pueda agregar/borrar mapas:
 4. Cambia las reglas a:
 ```
 match /maps/{mapId} {
+  allow read: if true;
+  allow write: if request.auth != null;
+}
+match /teams/{teamId} {
   allow read: if true;
   allow write: if request.auth != null;
 }
@@ -97,6 +110,19 @@ Colección `maps`, un documento por mapa:
 
 No necesitas crear nada manualmente: el panel de admin crea los documentos
 automáticamente al agregar el primer mapa.
+
+Colección `teams`, un documento por equipo:
+
+| Campo        | Tipo    | Descripción                                  |
+|--------------|---------|-----------------------------------------------|
+| `name`       | string  | Nombre visible, ej. `"Team Spirit"`           |
+| `logoUrl`    | string  | URL pública del logo, o `null` si no tiene    |
+| `storagePath`| string  | Ruta en Storage (si se subió archivo), o null |
+| `order`      | number  | Orden de aparición en el selector             |
+| `createdAt`  | timestamp | Generado automáticamente                    |
+
+Igual que con los mapas, se crea automáticamente desde el panel de admin —
+sección "Gestión de equipos", debajo de la de mapas.
 
 ## 5. Probar en local
 
@@ -128,6 +154,9 @@ Esto te da una URL pública tipo `https://tu-proyecto.web.app`.
 
 ## 7. Cómo funciona el veto
 
+- En la pantalla de inicio eliges el **Equipo A** y el **Equipo B** haciendo
+  click en sus tarjetas (con logo, si tiene). Si un equipo ya está elegido en
+  un lado, aparece atenuado y no se puede elegir en el otro lado.
 - **Bo1**: solo bans alternados hasta que queda 1 mapa → ese es el decider.
 - **Bo3**: ban, ban, pick, pick, ban, ban → el último que sobra es el decider.
 - **Bo5**: ban, ban, pick, pick, pick, pick → el último que sobra es el decider.

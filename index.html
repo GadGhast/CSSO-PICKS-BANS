@@ -14,11 +14,11 @@
   <div class="brand">
     <div class="dot"></div>
     <h1>CS<span>VETO</span></h1>
-    <span style="font-family:var(--font-mono); font-size:11px; color:var(--muted); border:1px solid var(--border); padding:2px 6px; border-radius:2px; margin-left:8px;">build v7</span>
+    <span style="font-family:var(--font-mono); font-size:11px; color:var(--muted); border:1px solid var(--border); padding:2px 6px; border-radius:2px; margin-left:8px;">build v9</span>
   </div>
   <nav>
     <a href="index.html" class="active">Veto en vivo</a>
-    <a href="admin.html">Admin de mapas</a>
+    <a href="admin.html">Admin de mapas y equipos</a>
   </nav>
 </header>
 
@@ -31,14 +31,16 @@
       Define los equipos y el formato del enfrentamiento.
     </p>
 
-    <div class="setup-grid">
-      <div class="field">
-        <label for="team-a">Equipo A</label>
-        <input id="team-a" type="text" placeholder="Team Spirit" value="Equipo A" />
+    <div class="field">
+      <label>Equipo A</label>
+      <div id="team-a-picker" class="team-picker">
+        <div class="empty-state" style="padding:14px;">Cargando equipos…</div>
       </div>
-      <div class="field">
-        <label for="team-b">Equipo B</label>
-        <input id="team-b" type="text" placeholder="Natus Vincere" value="Equipo B" />
+    </div>
+    <div class="field">
+      <label>Equipo B</label>
+      <div id="team-b-picker" class="team-picker">
+        <div class="empty-state" style="padding:14px;">Cargando equipos…</div>
       </div>
     </div>
 
@@ -69,7 +71,11 @@
   <!-- ===================== PANTALLA DE VETO ===================== -->
   <section id="veto-screen" style="display:none;">
     <div id="turn-banner" class="turn-banner">
-      <div class="who">Turno: <span id="turn-team">—</span></div>
+      <div class="who">
+        Turno:
+        <img id="turn-team-logo" class="turn-logo" alt="" />
+        <span id="turn-team">—</span>
+      </div>
       <div class="action-tag" id="turn-action">BAN</div>
     </div>
 
@@ -92,6 +98,6 @@
 
 </main>
 
-<script type="module" src="js/veto.js?v=7"></script>
+<script type="module" src="js/veto.js?v=9"></script>
 </body>
 </html>

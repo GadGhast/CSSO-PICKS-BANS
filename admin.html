@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Admin de Mapas — CS VETO</title>
+<title>Admin de Mapas y Equipos — CS VETO</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css" />
@@ -16,11 +16,11 @@
   <div class="brand">
     <div class="dot"></div>
     <h1>CS<span>VETO</span></h1>
-    <span style="font-family:var(--font-mono); font-size:11px; color:var(--muted); border:1px solid var(--border); padding:2px 6px; border-radius:2px; margin-left:8px;">build v7</span>
+    <span style="font-family:var(--font-mono); font-size:11px; color:var(--muted); border:1px solid var(--border); padding:2px 6px; border-radius:2px; margin-left:8px;">build v9</span>
   </div>
   <nav>
     <a href="index.html">Veto en vivo</a>
-    <a href="admin.html" class="active">Admin de mapas</a>
+    <a href="admin.html" class="active">Admin de mapas y equipos</a>
   </nav>
 </header>
 
@@ -72,8 +72,52 @@
       <div class="empty-state">Cargando mapas…</div>
     </div>
   </section>
+
+  <hr style="border-color: var(--border); margin: 48px 0;" />
+
+  <h2 style="margin-bottom:6px;">Gestión de equipos</h2>
+  <p style="color:var(--muted); margin-top:0; margin-bottom:28px;">
+    Los equipos que agregues aquí aparecen como opciones seleccionables
+    (con su logo) al iniciar un veto.
+  </p>
+
+  <section class="panel" style="margin-bottom: 32px;">
+    <h3 style="margin-bottom:18px;">Agregar equipo</h3>
+    <form id="team-form">
+      <div class="field">
+        <label for="team-name">Nombre del equipo</label>
+        <input id="team-name" type="text" placeholder="Team Spirit" required />
+      </div>
+
+      <div class="field">
+        <label>Logo del equipo</label>
+        <div class="setup-grid">
+          <div>
+            <input id="team-logo-url" type="url" placeholder="Pegar URL de imagen (https://...)" />
+          </div>
+          <div>
+            <input id="team-logo-file" type="file" accept="image/*" />
+          </div>
+        </div>
+        <footer class="note">
+          Igual que con los mapas: pega una URL <strong>o</strong> sube un archivo. El logo es opcional (si no pones ninguno, se muestra solo el nombre).
+        </footer>
+      </div>
+
+      <div id="team-form-error" style="color: var(--ban); font-size: 13px; margin-bottom: 12px;"></div>
+
+      <button type="submit" class="primary" id="team-submit-btn">+ Agregar equipo</button>
+    </form>
+  </section>
+
+  <section>
+    <h3 style="margin-bottom:18px;">Equipos registrados</h3>
+    <div id="teams-grid" class="team-grid">
+      <div class="empty-state">Cargando equipos…</div>
+    </div>
+  </section>
 </main>
 
-<script type="module" src="js/admin.js?v=7"></script>
+<script type="module" src="js/admin.js?v=9"></script>
 </body>
 </html>
