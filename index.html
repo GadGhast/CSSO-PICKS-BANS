@@ -14,7 +14,7 @@
   <div class="brand">
     <div class="dot"></div>
     <h1>CS<span>VETO</span></h1>
-    <span style="font-family:var(--font-mono); font-size:11px; color:var(--muted); border:1px solid var(--border); padding:2px 6px; border-radius:2px; margin-left:8px;">build v9</span>
+    <span style="font-family:var(--font-mono); font-size:11px; color:var(--muted); border:1px solid var(--border); padding:2px 6px; border-radius:2px; margin-left:8px;">build v13</span>
   </div>
   <nav>
     <a href="index.html" class="active">Veto en vivo</a>
@@ -31,36 +31,38 @@
       Define los equipos y el formato del enfrentamiento.
     </p>
 
-    <div class="field">
-      <label>Equipo A</label>
-      <div id="team-a-picker" class="team-picker">
-        <div class="empty-state" style="padding:14px;">Cargando equipos…</div>
+    <div class="setup-grid">
+      <div class="field">
+        <label>Equipo A <span style="color:var(--muted); font-weight:400; text-transform:none; letter-spacing:normal;">(local · empieza vetando)</span></label>
+        <div class="team-dropdown" id="team-a-dropdown">
+          <button type="button" class="team-dropdown-toggle" id="team-a-toggle">
+            <img class="td-logo" alt="" />
+            <span class="td-name">— Selecciona equipo —</span>
+            <span class="td-arrow">▾</span>
+          </button>
+          <div class="team-dropdown-menu" id="team-a-menu"></div>
+        </div>
       </div>
-    </div>
-    <div class="field">
-      <label>Equipo B</label>
-      <div id="team-b-picker" class="team-picker">
-        <div class="empty-state" style="padding:14px;">Cargando equipos…</div>
+      <div class="field">
+        <label>Equipo B</label>
+        <div class="team-dropdown" id="team-b-dropdown">
+          <button type="button" class="team-dropdown-toggle" id="team-b-toggle">
+            <img class="td-logo" alt="" />
+            <span class="td-name">— Selecciona equipo —</span>
+            <span class="td-arrow">▾</span>
+          </button>
+          <div class="team-dropdown-menu" id="team-b-menu"></div>
+        </div>
       </div>
     </div>
 
-    <div class="setup-grid">
-      <div class="field">
-        <label for="format">Formato</label>
-        <select id="format">
-          <option value="bo1">Mejor de 1 (Bo1)</option>
-          <option value="bo3" selected>Mejor de 3 (Bo3)</option>
-          <option value="bo5">Mejor de 5 (Bo5)</option>
-        </select>
-      </div>
-      <div class="field">
-        <label for="starts">Empieza vetando</label>
-        <select id="starts">
-          <option value="A">Equipo A</option>
-          <option value="B">Equipo B</option>
-          <option value="random" selected>Aleatorio (coin flip)</option>
-        </select>
-      </div>
+    <div class="field">
+      <label for="format">Formato</label>
+      <select id="format">
+        <option value="bo1">Mejor de 1 (Bo1)</option>
+        <option value="bo3" selected>Mejor de 3 (Bo3)</option>
+        <option value="bo5">Mejor de 5 (Bo5)</option>
+      </select>
     </div>
 
     <div id="setup-error" style="color: var(--ban); font-size: 13px; margin-bottom: 14px;"></div>
@@ -92,12 +94,14 @@
   <!-- ===================== PANTALLA DE RESULTADO ===================== -->
   <section id="result-screen" class="panel" style="display:none;">
     <h2 style="margin-bottom: 18px;">Veto completado</h2>
-    <ul class="result-list" id="result-list"></ul>
+    <div class="result-grid-scroll">
+      <div class="result-grid" id="result-grid"></div>
+    </div>
     <button id="reset-btn-2" class="primary" style="margin-top:20px;">↻ Nuevo veto</button>
   </section>
 
 </main>
 
-<script type="module" src="js/veto.js?v=9"></script>
+<script type="module" src="js/veto.js?v=13"></script>
 </body>
 </html>
