@@ -101,7 +101,7 @@ Colección `maps`, un documento por mapa:
 | Campo        | Tipo    | Descripción                                  |
 |--------------|---------|-----------------------------------------------|
 | `name`       | string  | Nombre visible, ej. `"Mirage"`                |
-| `code`       | string  | Código de consola, ej. `"de_mirage"`          |
+| `code`       | string  | Generado automáticamente a partir del nombre (slug), ej. `"Mirage"` → `"mirage"`. No se pide en el formulario. |
 | `imageUrl`   | string  | URL pública de la imagen                      |
 | `storagePath`| string  | Ruta en Storage (si se subió archivo), o null |
 | `active`     | boolean | Si aparece o no en el veto                    |
