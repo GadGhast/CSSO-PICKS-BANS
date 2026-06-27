@@ -25,6 +25,20 @@
 </header>
 
 <main class="container">
+  <section class="panel" id="jsdelivr-help" style="margin-bottom: 28px; border-color: var(--accent);">
+    <h3 style="margin-bottom:10px; color:var(--accent);">📦 Cómo subir imágenes (gratis, sin Firebase Storage)</h3>
+    <ol style="color:var(--muted); line-height:1.7; padding-left:20px; margin:0;">
+      <li>Entra a tu repo: <a href="https://github.com/GadGhast/CSSO-PICKS-BANS" target="_blank" rel="noopener">github.com/GadGhast/CSSO-PICKS-BANS</a></li>
+      <li>Click en <strong>"Add file" → "Upload files"</strong> y sube la imagen (puedes crear carpetas, ej. <code>mapas/</code> o <code>logos/</code>).</li>
+      <li>Una vez subida, ábrela y click en <strong>"Download"/"View raw"</strong> no — simplemente copia la URL de la barra del navegador (la que contiene <code>/blob/</code>).</li>
+      <li>Pega esa URL de GitHub directamente en el campo de imagen de abajo: <strong>se convierte sola</strong> al formato jsDelivr al salir del campo.</li>
+    </ol>
+    <footer class="note">
+      Ejemplo: <code>https://github.com/GadGhast/CSSO-PICKS-BANS/blob/main/mapas/mirage.jpg</code> se convierte en
+      <code>https://cdn.jsdelivr.net/gh/GadGhast/CSSO-PICKS-BANS@main/mapas/mirage.jpg</code>. Es un CDN público, gratis y sin límite práctico para este uso.
+    </footer>
+  </section>
+
   <h2 style="margin-bottom:6px;">Gestión de mapas</h2>
   <p style="color:var(--muted); margin-top:0; margin-bottom:28px;">
     Los mapas que agregues aquí aparecen automáticamente en la pantalla de veto.
@@ -40,17 +54,12 @@
       </div>
 
       <div class="field">
-        <label>Imagen del mapa</label>
-        <div class="setup-grid">
-          <div>
-            <input id="map-image-url" type="url" placeholder="Pegar URL de imagen (https://...)" />
-          </div>
-          <div>
-            <input id="map-image-file" type="file" accept="image/*" />
-          </div>
-        </div>
+        <label for="map-image-url">Imagen del mapa (URL)</label>
+        <input id="map-image-url" type="url" placeholder="https://cdn.jsdelivr.net/gh/GadGhast/CSSO-PICKS-BANS@main/mapas/mirage.jpg" required />
         <footer class="note">
-          Puedes pegar una URL directa <strong>o</strong> subir un archivo (se guarda en Firebase Storage). Si rellenas ambos, se usa el archivo subido.
+          Sube la imagen a tu repo <a href="https://github.com/GadGhast/CSSO-PICKS-BANS" target="_blank" rel="noopener">GadGhast/CSSO-PICKS-BANS</a>,
+          abre el archivo en GitHub y pega aquí el link — si pegas la URL normal de GitHub (la que dice <code>/blob/</code>),
+          se convierte sola al formato de jsDelivr al salir del campo. <a href="#jsdelivr-help">¿Cómo subo imágenes?</a>
         </footer>
       </div>
 
@@ -84,17 +93,11 @@
       </div>
 
       <div class="field">
-        <label>Logo del equipo</label>
-        <div class="setup-grid">
-          <div>
-            <input id="team-logo-url" type="url" placeholder="Pegar URL de imagen (https://...)" />
-          </div>
-          <div>
-            <input id="team-logo-file" type="file" accept="image/*" />
-          </div>
-        </div>
+        <label for="team-logo-url">Logo del equipo (URL, opcional)</label>
+        <input id="team-logo-url" type="url" placeholder="https://cdn.jsdelivr.net/gh/GadGhast/CSSO-PICKS-BANS@main/logos/team-spirit.png" />
         <footer class="note">
-          Igual que con los mapas: pega una URL <strong>o</strong> sube un archivo. El logo es opcional (si no pones ninguno, se muestra solo el nombre).
+          Igual que con los mapas: sube el logo a tu repo de GitHub y pega el link aquí (se convierte solo a jsDelivr).
+          Es opcional — si lo dejas vacío, se muestran las iniciales del equipo.
         </footer>
       </div>
 
