@@ -95,24 +95,33 @@ async function performDelete(btn, deleteFn, entityLabel) {
 // ================================================================
 const form = document.getElementById("map-form");
 const nameInput = document.getElementById("map-name");
-const codeInput = document.getElementById("map-code");
 const urlInput = document.getElementById("map-image-url");
 const fileInput = document.getElementById("map-image-file");
 const errorBox = document.getElementById("form-error");
 const submitBtn = document.getElementById("submit-btn");
 const grid = document.getElementById("maps-grid");
 
+// Genera un código interno tipo "de_mirage" a partir del nombre,
+// solo para uso interno (log de consola, identificadores).
+function slugify(name) {
+  return name
+    .toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // quita acentos
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+}
+
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
   errorBox.textContent = "";
 
   const name = nameInput.value.trim();
-  const code = codeInput.value.trim();
+  const code = slugify(name);
   const url = urlInput.value.trim();
   const file = fileInput.files[0];
 
-  if (!name || !code) {
-    errorBox.textContent = "El nombre y el código son obligatorios.";
+  if (!name) {
+    errorBox.textContent = "El nombre es obligatorio.";
     return;
   }
   if (!url && !file) {
@@ -159,7 +168,6 @@ subscribeToMaps(
         <img src="${m.imageUrl}" alt="${m.name}" />
         <div class="meta">
           <div class="name">${m.name}</div>
-          <div class="code">${m.code}</div>
         </div>
       </div>
     `

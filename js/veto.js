@@ -1,4 +1,4 @@
-// CS VETO — veto.js — v13 (siempre empieza Equipo A, tag de resultado solo con nombre)
+// CS VETO — veto.js — v14 (sin texto secundario de código en las tarjetas)
 import { subscribeToMaps } from "./maps-service.js";
 import { subscribeToTeams } from "./teams-service.js";
 
@@ -256,7 +256,6 @@ function renderGrid() {
           <img src="${m.imageUrl}" alt="${m.name}" />
           <div class="meta">
             <div class="name">${m.name}</div>
-            <div class="code">${m.code}</div>
           </div>
           ${stamp}
         </div>`;
@@ -395,7 +394,6 @@ function finishVeto() {
           <img src="${r.map.imageUrl}" alt="${r.map.name}" />
           <div class="meta">
             <div class="name">${r.map.name}</div>
-            <div class="code">${r.map.code}</div>
           </div>
           <div class="result-tag ${statusClass}">${tagText}</div>
         </div>`;
