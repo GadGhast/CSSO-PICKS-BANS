@@ -1,4 +1,4 @@
-// CS VETO — veto.js — v9 (más transparencia en el velo de color)
+// CS VETO — veto.js — v13 (siempre empieza Equipo A, tag de resultado solo con nombre)
 import { subscribeToMaps } from "./maps-service.js";
 import { subscribeToTeams } from "./teams-service.js";
 
@@ -21,10 +21,13 @@ const setupScreen = document.getElementById("setup-screen");
 const vetoScreen = document.getElementById("veto-screen");
 const resultScreen = document.getElementById("result-screen");
 
-const teamAPicker = document.getElementById("team-a-picker");
-const teamBPicker = document.getElementById("team-b-picker");
+const teamADropdown = document.getElementById("team-a-dropdown");
+const teamAToggle = document.getElementById("team-a-toggle");
+const teamAMenu = document.getElementById("team-a-menu");
+const teamBDropdown = document.getElementById("team-b-dropdown");
+const teamBToggle = document.getElementById("team-b-toggle");
+const teamBMenu = document.getElementById("team-b-menu");
 const formatSelect = document.getElementById("format");
-const startsSelect = document.getElementById("starts");
 const setupError = document.getElementById("setup-error");
 const startBtn = document.getElementById("start-btn");
 
@@ -37,7 +40,7 @@ const turnActionEl = document.getElementById("turn-action");
 const resetBtn = document.getElementById("reset-btn");
 const resetBtn2 = document.getElementById("reset-btn-2");
 
-const resultList = document.getElementById("result-list");
+const resultGrid = document.getElementById("result-grid");
 
 // ---------------------------------------------------------------
 // Cargar mapas activos desde Firebase
@@ -48,7 +51,7 @@ subscribeToMaps((maps) => {
 });
 
 // ---------------------------------------------------------------
-// Cargar equipos desde Firebase y dibujar los selectores (chips)
+// Cargar equipos desde Firebase y poblar los selects (con preview de logo)
 // ---------------------------------------------------------------
 subscribeToTeams((teams) => {
   allTeams = teams;
@@ -57,51 +60,92 @@ subscribeToTeams((teams) => {
   if (selectedTeam.A && !allTeams.find((t) => t.id === selectedTeam.A.id)) selectedTeam.A = null;
   if (selectedTeam.B && !allTeams.find((t) => t.id === selectedTeam.B.id)) selectedTeam.B = null;
 
-  renderTeamPicker("A");
-  renderTeamPicker("B");
+  renderTeamMenu("A");
+  renderTeamMenu("B");
+  updateToggleDisplay("A");
+  updateToggleDisplay("B");
   validateSetup();
 });
 
-function teamChipHTML(team, side) {
-  const isSelected = selectedTeam[side]?.id === team.id;
-  const otherSide = side === "A" ? "B" : "A";
-  const isTaken = selectedTeam[otherSide]?.id === team.id; // ya elegido en el otro lado
-  const classes = ["team-chip"];
-  if (isSelected) classes.push("selected");
-  if (isTaken) classes.push("taken");
-
-  const logo = team.logoUrl
+function teamLogoOrInitials(team) {
+  return team.logoUrl
     ? `<img src="${team.logoUrl}" alt="" />`
     : `<span class="no-logo">${team.name.slice(0, 2).toUpperCase()}</span>`;
-
-  return `
-    <div class="${classes.join(" ")}" data-id="${team.id}">
-      <div class="logo-wrap">${logo}</div>
-      <div class="chip-name">${team.name}</div>
-    </div>`;
 }
 
-function renderTeamPicker(side) {
-  const container = side === "A" ? teamAPicker : teamBPicker;
+function renderTeamMenu(side) {
+  const menu = side === "A" ? teamAMenu : teamBMenu;
 
   if (!allTeams.length) {
-    container.innerHTML = `<div class="empty-state" style="padding:14px;">No hay equipos. Agrégalos desde Admin.</div>`;
+    menu.innerHTML = `<div class="team-dropdown-empty">No hay equipos. Agrégalos desde Admin.</div>`;
     return;
   }
 
-  container.innerHTML = allTeams.map((t) => teamChipHTML(t, side)).join("");
+  menu.innerHTML = allTeams
+    .map((t) => {
+      const isSelected = selectedTeam[side]?.id === t.id;
+      return `
+      <div class="team-dropdown-item${isSelected ? " selected" : ""}" data-id="${t.id}">
+        <div class="td-logo-wrap">${teamLogoOrInitials(t)}</div>
+        <span>${t.name}</span>
+      </div>`;
+    })
+    .join("");
 
-  container.querySelectorAll(".team-chip").forEach((chip) => {
-    chip.addEventListener("click", () => {
-      if (chip.classList.contains("taken")) return;
-      const team = allTeams.find((t) => t.id === chip.dataset.id);
+  menu.querySelectorAll(".team-dropdown-item").forEach((item) => {
+    item.addEventListener("click", () => {
+      const team = allTeams.find((t) => t.id === item.dataset.id);
       selectedTeam[side] = team;
-      renderTeamPicker("A");
-      renderTeamPicker("B");
+      updateToggleDisplay(side);
+      renderTeamMenu(side);
+      closeAllDropdowns();
       validateSetup();
     });
   });
 }
+
+function updateToggleDisplay(side) {
+  const toggle = side === "A" ? teamAToggle : teamBToggle;
+  const team = selectedTeam[side];
+  const logoImg = toggle.querySelector(".td-logo");
+  const nameSpan = toggle.querySelector(".td-name");
+
+  if (team) {
+    nameSpan.textContent = team.name;
+    if (team.logoUrl) {
+      logoImg.src = team.logoUrl;
+      logoImg.classList.add("visible");
+    } else {
+      logoImg.removeAttribute("src");
+      logoImg.classList.remove("visible");
+    }
+  } else {
+    nameSpan.textContent = "— Selecciona equipo —";
+    logoImg.removeAttribute("src");
+    logoImg.classList.remove("visible");
+  }
+}
+
+function closeAllDropdowns() {
+  teamADropdown.classList.remove("open");
+  teamBDropdown.classList.remove("open");
+}
+
+teamAToggle.addEventListener("click", (e) => {
+  e.stopPropagation();
+  const willOpen = !teamADropdown.classList.contains("open");
+  closeAllDropdowns();
+  if (willOpen) teamADropdown.classList.add("open");
+});
+
+teamBToggle.addEventListener("click", (e) => {
+  e.stopPropagation();
+  const willOpen = !teamBDropdown.classList.contains("open");
+  closeAllDropdowns();
+  if (willOpen) teamBDropdown.classList.add("open");
+});
+
+document.addEventListener("click", () => closeAllDropdowns());
 
 // ---------------------------------------------------------------
 // Validación general de la pantalla de setup
@@ -168,8 +212,8 @@ startBtn.addEventListener("click", () => {
   teamNames.A = { name: selectedTeam.A.name, logoUrl: selectedTeam.A.logoUrl || null };
   teamNames.B = { name: selectedTeam.B.name, logoUrl: selectedTeam.B.logoUrl || null };
 
-  let firstTeam = startsSelect.value;
-  if (firstTeam === "random") firstTeam = Math.random() < 0.5 ? "A" : "B";
+  // Siempre empieza vetando el Equipo A (local)
+  const firstTeam = "A";
 
   sequence = buildSequence(formatSelect.value, allMaps.length, firstTeam);
   stepIndex = 0;
@@ -330,15 +374,31 @@ function finishVeto() {
     vetoScreen.style.display = "none";
     resultScreen.style.display = "block";
 
-    resultList.innerHTML = finalResults
+    // El número de mapas finales (picks + decider) ya coincide con
+    // 1 (Bo1), 3 (Bo3) o 5 (Bo5) según la secuencia generada.
+    resultGrid.style.setProperty("--cols", finalResults.length);
+
+    resultGrid.innerHTML = finalResults
       .map((r) => {
-        const label =
-          r.type === "decider" ? "DECIDER" :
-          `PICK — ${teamNames[r.team].name}`;
-        return `<li class="${r.type}">
-          <span class="mono">${r.map.code.toUpperCase()}</span>
-          <span>${label}</span>
-        </li>`;
+        const isDecider = r.type === "decider";
+        const statusClass = isDecider ? "decider" : "picked";
+
+        const badge = isDecider
+          ? ""
+          : `<div class="result-badge">${teamLogoOrInitials(teamNames[r.team])}</div>`;
+
+        const tagText = isDecider ? "DECIDER" : teamNames[r.team].name;
+
+        return `
+        <div class="result-map-card ${statusClass}">
+          ${badge}
+          <img src="${r.map.imageUrl}" alt="${r.map.name}" />
+          <div class="meta">
+            <div class="name">${r.map.name}</div>
+            <div class="code">${r.map.code}</div>
+          </div>
+          <div class="result-tag ${statusClass}">${tagText}</div>
+        </div>`;
       })
       .join("");
   }, 600);
