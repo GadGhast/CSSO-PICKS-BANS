@@ -1,14 +1,17 @@
-// CS VETO — veto.js — v7 (velo de color más transparente en las tarjetas)
+// CS VETO — veto.js — v9 (más transparencia en el velo de color)
 import { subscribeToMaps } from "./maps-service.js";
+import { subscribeToTeams } from "./teams-service.js";
 
 // ---------------------------------------------------------------
 // Estado
 // ---------------------------------------------------------------
 let allMaps = [];           // mapas activos cargados desde Firestore
+let allTeams = [];          // equipos cargados desde Firestore
+let selectedTeam = { A: null, B: null }; // { id, name, logoUrl } | null
 let sequence = [];          // [{ team:'A'|'B', action:'ban'|'pick'|'decider' }]
 let stepIndex = 0;
 let mapState = {};          // mapId -> { status:'available'|'banned'|'picked'|'decider' }
-let teamNames = { A: "Equipo A", B: "Equipo B" };
+let teamNames = { A: { name: "Equipo A", logoUrl: null }, B: { name: "Equipo B", logoUrl: null } };
 let finalResults = [];      // log de resultado final
 
 // ---------------------------------------------------------------
@@ -18,8 +21,8 @@ const setupScreen = document.getElementById("setup-screen");
 const vetoScreen = document.getElementById("veto-screen");
 const resultScreen = document.getElementById("result-screen");
 
-const teamAInput = document.getElementById("team-a");
-const teamBInput = document.getElementById("team-b");
+const teamAPicker = document.getElementById("team-a-picker");
+const teamBPicker = document.getElementById("team-b-picker");
 const formatSelect = document.getElementById("format");
 const startsSelect = document.getElementById("starts");
 const setupError = document.getElementById("setup-error");
@@ -28,6 +31,7 @@ const startBtn = document.getElementById("start-btn");
 const mapsGrid = document.getElementById("maps-grid");
 const terminal = document.getElementById("terminal");
 const turnBannerEl = document.getElementById("turn-banner");
+const turnTeamLogoEl = document.getElementById("turn-team-logo");
 const turnTeamEl = document.getElementById("turn-team");
 const turnActionEl = document.getElementById("turn-action");
 const resetBtn = document.getElementById("reset-btn");
@@ -40,16 +44,95 @@ const resultList = document.getElementById("result-list");
 // ---------------------------------------------------------------
 subscribeToMaps((maps) => {
   allMaps = maps.filter((m) => m.active !== false);
-  if (vetoScreen.style.display === "none" && setupScreen.style.display !== "none") {
-    if (!allMaps.length) {
-      setupError.textContent = "No hay mapas activos. Agrega mapas desde el panel de Admin.";
-      startBtn.disabled = true;
-    } else {
-      setupError.textContent = "";
-      startBtn.disabled = false;
-    }
-  }
+  validateSetup();
 });
+
+// ---------------------------------------------------------------
+// Cargar equipos desde Firebase y dibujar los selectores (chips)
+// ---------------------------------------------------------------
+subscribeToTeams((teams) => {
+  allTeams = teams;
+
+  // Si un equipo seleccionado fue eliminado de Firestore, deselecciona
+  if (selectedTeam.A && !allTeams.find((t) => t.id === selectedTeam.A.id)) selectedTeam.A = null;
+  if (selectedTeam.B && !allTeams.find((t) => t.id === selectedTeam.B.id)) selectedTeam.B = null;
+
+  renderTeamPicker("A");
+  renderTeamPicker("B");
+  validateSetup();
+});
+
+function teamChipHTML(team, side) {
+  const isSelected = selectedTeam[side]?.id === team.id;
+  const otherSide = side === "A" ? "B" : "A";
+  const isTaken = selectedTeam[otherSide]?.id === team.id; // ya elegido en el otro lado
+  const classes = ["team-chip"];
+  if (isSelected) classes.push("selected");
+  if (isTaken) classes.push("taken");
+
+  const logo = team.logoUrl
+    ? `<img src="${team.logoUrl}" alt="" />`
+    : `<span class="no-logo">${team.name.slice(0, 2).toUpperCase()}</span>`;
+
+  return `
+    <div class="${classes.join(" ")}" data-id="${team.id}">
+      <div class="logo-wrap">${logo}</div>
+      <div class="chip-name">${team.name}</div>
+    </div>`;
+}
+
+function renderTeamPicker(side) {
+  const container = side === "A" ? teamAPicker : teamBPicker;
+
+  if (!allTeams.length) {
+    container.innerHTML = `<div class="empty-state" style="padding:14px;">No hay equipos. Agrégalos desde Admin.</div>`;
+    return;
+  }
+
+  container.innerHTML = allTeams.map((t) => teamChipHTML(t, side)).join("");
+
+  container.querySelectorAll(".team-chip").forEach((chip) => {
+    chip.addEventListener("click", () => {
+      if (chip.classList.contains("taken")) return;
+      const team = allTeams.find((t) => t.id === chip.dataset.id);
+      selectedTeam[side] = team;
+      renderTeamPicker("A");
+      renderTeamPicker("B");
+      validateSetup();
+    });
+  });
+}
+
+// ---------------------------------------------------------------
+// Validación general de la pantalla de setup
+// ---------------------------------------------------------------
+function validateSetup() {
+  if (vetoScreen.style.display !== "none") return; // ya empezó el veto
+
+  if (!allMaps.length) {
+    setupError.textContent = "No hay mapas activos. Agrega mapas desde el panel de Admin.";
+    startBtn.disabled = true;
+    return;
+  }
+  if (!allTeams.length) {
+    setupError.textContent = "No hay equipos. Agrega al menos dos equipos desde el panel de Admin.";
+    startBtn.disabled = true;
+    return;
+  }
+  if (!selectedTeam.A || !selectedTeam.B) {
+    setupError.textContent = "Selecciona el Equipo A y el Equipo B.";
+    startBtn.disabled = true;
+    return;
+  }
+  if (selectedTeam.A.id === selectedTeam.B.id) {
+    setupError.textContent = "El Equipo A y el Equipo B no pueden ser el mismo.";
+    startBtn.disabled = true;
+    return;
+  }
+
+  setupError.textContent = "";
+  startBtn.disabled = false;
+}
 
 // ---------------------------------------------------------------
 // Generar secuencia de veto según formato y cantidad de mapas
@@ -80,10 +163,10 @@ function buildSequence(format, mapCount, firstTeam) {
 // Iniciar veto
 // ---------------------------------------------------------------
 startBtn.addEventListener("click", () => {
-  if (!allMaps.length) return;
+  if (!allMaps.length || !selectedTeam.A || !selectedTeam.B) return;
 
-  teamNames.A = teamAInput.value.trim() || "Equipo A";
-  teamNames.B = teamBInput.value.trim() || "Equipo B";
+  teamNames.A = { name: selectedTeam.A.name, logoUrl: selectedTeam.A.logoUrl || null };
+  teamNames.B = { name: selectedTeam.B.name, logoUrl: selectedTeam.B.logoUrl || null };
 
   let firstTeam = startsSelect.value;
   if (firstTeam === "random") firstTeam = Math.random() < 0.5 ? "A" : "B";
@@ -99,8 +182,8 @@ startBtn.addEventListener("click", () => {
   vetoScreen.style.display = "block";
 
   terminal.innerHTML = "";
-  logLine(`sys`, `Veto iniciado — ${formatSelect.value.toUpperCase()} — ${teamNames.A} vs ${teamNames.B}`);
-  logLine(`sys`, `Empieza: ${teamNames[firstTeam]}`);
+  logLine(`sys`, `Veto iniciado — ${formatSelect.value.toUpperCase()} — ${teamNames.A.name} vs ${teamNames.B.name}`);
+  logLine(`sys`, `Empieza: ${teamNames[firstTeam].name}`);
 
   renderGrid();
   renderTurnBanner();
@@ -157,7 +240,17 @@ function renderTurnBanner() {
     return;
   }
 
-  turnTeamEl.textContent = teamNames[step.team];
+  const team = teamNames[step.team];
+  turnTeamEl.textContent = team.name;
+
+  if (team.logoUrl) {
+    turnTeamLogoEl.src = team.logoUrl;
+    turnTeamLogoEl.classList.add("visible");
+  } else {
+    turnTeamLogoEl.removeAttribute("src");
+    turnTeamLogoEl.classList.remove("visible");
+  }
+
   turnActionEl.textContent = step.action === "ban" ? "BAN" : "PICK";
   turnActionEl.className = "action-tag " + (step.action === "ban" ? "ban" : "pick");
   turnBannerEl.className = "turn-banner " + (step.action === "ban" ? "is-ban" : "is-pick");
@@ -179,13 +272,13 @@ function onMapClick(mapId) {
 
   if (step.action === "ban") {
     st.status = "banned";
-    logLine("ban", `[${teamNames[step.team]}] BANEÓ ${map.code.toUpperCase()}`);
+    logLine("ban", `[${teamNames[step.team].name}] BANEÓ ${map.code.toUpperCase()}`);
     stepIndex++;
     renderGrid();
     renderTurnBanner();
   } else if (step.action === "pick") {
     st.status = "picked";
-    logLine("pick", `[${teamNames[step.team]}] ELIGIÓ ${map.code.toUpperCase()}`);
+    logLine("pick", `[${teamNames[step.team].name}] ELIGIÓ ${map.code.toUpperCase()}`);
     finalResults.push({ type: "pick", team: step.team, map });
     stepIndex++;
     renderGrid();
@@ -241,7 +334,7 @@ function finishVeto() {
       .map((r) => {
         const label =
           r.type === "decider" ? "DECIDER" :
-          `PICK — ${teamNames[r.team]}`;
+          `PICK — ${teamNames[r.team].name}`;
         return `<li class="${r.type}">
           <span class="mono">${r.map.code.toUpperCase()}</span>
           <span>${label}</span>
@@ -262,6 +355,7 @@ function resetVeto() {
   sequence = [];
   mapState = {};
   finalResults = [];
+  validateSetup();
 }
 resetBtn.addEventListener("click", resetVeto);
 resetBtn2.addEventListener("click", resetVeto);
