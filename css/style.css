@@ -379,24 +379,72 @@ label {
   border-radius: var(--radius);
 }
 
-.result-list {
-  list-style: none;
-  margin: 0; padding: 0;
-  display: flex; flex-direction: column; gap: 8px;
+/* ============================================================
+   RESULT GRID (pantalla "Veto completado")
+   Horizontal: 1 columna en Bo1, 3 en Bo3, 5 en Bo5 (--cols lo fija JS)
+   ============================================================ */
+.result-grid-scroll {
+  overflow-x: auto;
+  padding-bottom: 6px;
 }
-.result-list li {
-  display: flex; justify-content: space-between; align-items: center;
+.result-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--cols, 3), minmax(170px, 240px));
+  justify-content: center;
+  gap: 18px;
+}
+
+.result-map-card {
+  position: relative;
   background: var(--panel-2);
-  border: 1px solid var(--border);
-  border-left: 4px solid var(--muted);
-  padding: 10px 14px;
+  border: 2px solid var(--border);
   border-radius: var(--radius);
-  font-family: var(--font-mono);
-  font-size: 13px;
+  overflow: hidden;
 }
-.result-list li.ban { border-left-color: var(--ban); }
-.result-list li.pick { border-left-color: var(--pick); }
-.result-list li.decider { border-left-color: var(--decider); }
+.result-map-card img {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+  display: block;
+}
+.result-map-card .meta { padding: 10px 12px; }
+.result-map-card .meta .name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 15px;
+  text-transform: uppercase;
+}
+.result-map-card .meta .code {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--muted);
+}
+.result-map-card.picked { border-color: var(--pick); }
+.result-map-card.decider { border-color: var(--decider); }
+
+.result-badge {
+  position: absolute;
+  top: 8px; left: 8px;
+  z-index: 3;
+  width: 30px; height: 30px;
+  border-radius: 4px;
+  background: rgba(10,13,16,0.85);
+  border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+}
+.result-badge img { width: 100%; height: 100%; object-fit: contain; }
+.result-badge .no-logo { font-family: var(--font-display); font-size: 11px; color: var(--text); }
+
+.result-tag {
+  padding: 6px 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-align: center;
+  border-top: 1px solid var(--border);
+}
+.result-tag.picked { color: var(--pick); }
+.result-tag.decider { color: var(--decider); }
 
 footer.note {
   margin-top: 18px;
@@ -464,50 +512,92 @@ footer.note {
 .team-card .remove-btn:hover { color: #fff; background: var(--ban); border-color: var(--ban); }
 
 /* ============================================================
-   TEAM PICKER (pantalla de veto) — chips seleccionables con logo
+   TEAM DROPDOWN (pantalla de setup) — cajón tipo <select>, pero
+   con logo + nombre tanto cerrado como en cada opción del menú
    ============================================================ */
-.team-picker {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
+.team-dropdown {
+  position: relative;
 }
-.team-chip {
+.team-dropdown-toggle {
+  width: 100%;
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 14px 8px 8px;
+  gap: 10px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  font-family: var(--font-body);
+  font-size: 14px;
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 400;
+  cursor: pointer;
+}
+.team-dropdown-toggle:hover { border-color: var(--accent); color: var(--text); }
+.team-dropdown.open .team-dropdown-toggle { border-color: var(--accent); }
+
+.team-dropdown-toggle .td-logo {
+  width: 26px; height: 26px;
+  border-radius: 3px;
+  object-fit: contain;
+  background: var(--panel);
+  display: none;
+  flex-shrink: 0;
+}
+.team-dropdown-toggle .td-logo.visible { display: block; }
+.team-dropdown-toggle .td-name { flex: 1; text-align: left; }
+.team-dropdown-toggle .td-arrow {
+  color: var(--muted);
+  font-size: 11px;
+  transition: transform 0.15s;
+}
+.team-dropdown.open .td-arrow { transform: rotate(180deg); }
+
+.team-dropdown-menu {
+  display: none;
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0; right: 0;
+  z-index: 20;
+  background: var(--panel-2);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  background: var(--panel-2);
-  cursor: pointer;
-  transition: 0.15s;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+  max-height: 260px;
+  overflow-y: auto;
 }
-.team-chip:hover { border-color: var(--accent); }
-.team-chip .logo-wrap {
-  width: 28px; height: 28px;
+.team-dropdown.open .team-dropdown-menu { display: block; }
+
+.team-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.team-dropdown-item:hover { background: var(--panel); }
+.team-dropdown-item.selected { background: var(--accent-dim); color: var(--accent); }
+
+.td-logo-wrap {
+  width: 26px; height: 26px;
   border-radius: 3px;
   background: var(--panel);
   display: flex; align-items: center; justify-content: center;
   overflow: hidden;
   flex-shrink: 0;
 }
-.team-chip .logo-wrap img { width: 100%; height: 100%; object-fit: contain; }
-.team-chip .logo-wrap .no-logo { font-family: var(--font-display); font-size: 12px; color: var(--muted); }
-.team-chip .chip-name {
-  font-family: var(--font-display);
+.td-logo-wrap img { width: 100%; height: 100%; object-fit: contain; }
+.td-logo-wrap .no-logo { font-family: var(--font-display); font-size: 11px; color: var(--muted); }
+
+.team-dropdown-empty {
+  padding: 14px;
+  color: var(--muted);
   font-size: 13px;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
+  text-align: center;
 }
-.team-chip.selected {
-  border-color: var(--accent);
-  background: var(--accent-dim);
-}
-.team-chip.taken {
-  opacity: 0.3;
-  cursor: not-allowed;
-}
-.team-chip.taken:hover { border-color: var(--border); }
 
 /* Logo del equipo dentro del banner de turno */
 .turn-banner .who {
@@ -522,3 +612,5 @@ footer.note {
   display: none;
 }
 .turn-logo.visible { display: inline-block; }
+
+
