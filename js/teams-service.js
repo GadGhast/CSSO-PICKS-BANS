@@ -1,10 +1,12 @@
 // ============================================================
 // TEAMS SERVICE
-// Capa de acceso a la colección "teams" de Firestore y al
-// bucket "teams/" de Storage. Mismo patrón que maps-service.js.
+// Capa de acceso a la colección "teams" de Firestore.
+// Los logos ya NO se suben a Firebase Storage: se guarda
+// directamente la URL pública (GitHub + jsDelivr, ver README).
+// Mismo patrón que maps-service.js.
 // ============================================================
 
-import { db, storage } from "./firebase-config.js";
+import { db } from "./firebase-config.js";
 import {
   collection,
   addDoc,
@@ -15,12 +17,6 @@ import {
   orderBy,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import {
-  ref,
-  uploadBytes,
-  getDownloadURL,
-  deleteObject
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
 const teamsCol = collection(db, "teams");
 
@@ -43,39 +39,22 @@ export function subscribeToTeams(callback, onError) {
 }
 
 /**
- * Sube un logo de equipo a Storage y devuelve la URL pública.
- */
-export async function uploadTeamLogo(file, teamName) {
-  const safeName = `${teamName || "team"}-${Date.now()}-${file.name}`;
-  const storageRef = ref(storage, `teams/${safeName}`);
-  await uploadBytes(storageRef, file);
-  return await getDownloadURL(storageRef);
-}
-
-/**
  * Crea un equipo nuevo en Firestore.
- * data = { name, logoUrl, storagePath, order }
+ * data = { name, logoUrl, order }
  */
 export async function addTeam(data) {
   return await addDoc(teamsCol, {
     name: data.name,
     logoUrl: data.logoUrl || null,
-    storagePath: data.storagePath || null,
     order: data.order ?? Date.now(),
     createdAt: serverTimestamp()
   });
 }
 
 /**
- * Elimina un equipo de Firestore (y su logo de Storage si existe).
+ * Elimina un equipo de Firestore (solo el documento; el logo
+ * vive en GitHub, no en Firebase).
  */
-export async function deleteTeam(teamId, storagePath) {
+export async function deleteTeam(teamId) {
   await deleteDoc(doc(db, "teams", teamId));
-  if (storagePath) {
-    try {
-      await deleteObject(ref(storage, storagePath));
-    } catch (e) {
-      console.warn("No se pudo borrar el logo de Storage:", e);
-    }
-  }
 }

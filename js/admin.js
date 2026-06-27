@@ -1,15 +1,5 @@
-import {
-  subscribeToMaps,
-  addMap,
-  deleteMap,
-  uploadMapImage
-} from "./maps-service.js";
-import {
-  subscribeToTeams,
-  addTeam,
-  deleteTeam,
-  uploadTeamLogo
-} from "./teams-service.js";
+import { subscribeToMaps, addMap, deleteMap } from "./maps-service.js";
+import { subscribeToTeams, addTeam, deleteTeam } from "./teams-service.js";
 
 // ---------------------------------------------------------------
 // Toast de feedback (sin alert() nativo, que algunos navegadores
@@ -31,6 +21,34 @@ function showToast(message, type = "info") {
   toast.style.boxShadow = "0 4px 14px rgba(0,0,0,0.4)";
   toastContainer.appendChild(toast);
   setTimeout(() => toast.remove(), 5000);
+}
+
+// ---------------------------------------------------------------
+// Conversor GitHub → jsDelivr
+// Si pegas la URL normal de un archivo en GitHub (la que contiene
+// "/blob/"), la convertimos sola al link de CDN de jsDelivr, que es
+// el que de verdad sirve la imagen rápido y gratis.
+//   https://github.com/USER/REPO/blob/BRANCH/ruta/archivo.jpg
+//   → https://cdn.jsdelivr.net/gh/USER/REPO@BRANCH/ruta/archivo.jpg
+// ---------------------------------------------------------------
+function githubBlobToJsdelivr(url) {
+  if (!url) return url;
+  const match = url
+    .trim()
+    .match(/^https?:\/\/github\.com\/([^/]+)\/([^/]+)\/blob\/([^/]+)\/(.+)$/);
+  if (!match) return url; // ya es otra cosa (jsDelivr, u otra imagen) -> se deja igual
+  const [, user, repo, branch, path] = match;
+  return `https://cdn.jsdelivr.net/gh/${user}/${repo}@${branch}/${path}`;
+}
+
+function attachAutoConvert(inputEl) {
+  inputEl.addEventListener("blur", () => {
+    const converted = githubBlobToJsdelivr(inputEl.value);
+    if (converted !== inputEl.value) {
+      inputEl.value = converted;
+      showToast("Link de GitHub convertido a jsDelivr ✓", "info");
+    }
+  });
 }
 
 // ---------------------------------------------------------------
@@ -69,12 +87,11 @@ function attachDeleteHandler(btn, deleteFn, entityLabel) {
 
 async function performDelete(btn, deleteFn, entityLabel) {
   const id = btn.dataset.id;
-  const storagePath = btn.dataset.storage || null;
   btn.disabled = true;
   btn.textContent = "…";
 
   try {
-    await deleteFn(id, storagePath);
+    await deleteFn(id);
     showToast(`${entityLabel} eliminado.`, "info");
     // No hace falta tocar el DOM: el subscribe vuelve a renderizar el grid solo.
   } catch (err) {
@@ -96,13 +113,14 @@ async function performDelete(btn, deleteFn, entityLabel) {
 const form = document.getElementById("map-form");
 const nameInput = document.getElementById("map-name");
 const urlInput = document.getElementById("map-image-url");
-const fileInput = document.getElementById("map-image-file");
 const errorBox = document.getElementById("form-error");
 const submitBtn = document.getElementById("submit-btn");
 const grid = document.getElementById("maps-grid");
 
-// Genera un código interno tipo "de_mirage" a partir del nombre,
-// solo para uso interno (log de consola, identificadores).
+attachAutoConvert(urlInput);
+
+// Genera un código interno tipo "mirage" a partir del nombre,
+// solo para uso interno (identificadores, no se muestra en la UI).
 function slugify(name) {
   return name
     .toLowerCase()
@@ -117,15 +135,14 @@ form.addEventListener("submit", async (e) => {
 
   const name = nameInput.value.trim();
   const code = slugify(name);
-  const url = urlInput.value.trim();
-  const file = fileInput.files[0];
+  const imageUrl = githubBlobToJsdelivr(urlInput.value.trim());
 
   if (!name) {
     errorBox.textContent = "El nombre es obligatorio.";
     return;
   }
-  if (!url && !file) {
-    errorBox.textContent = "Debes pegar una URL de imagen o subir un archivo.";
+  if (!imageUrl) {
+    errorBox.textContent = "Debes pegar la URL de la imagen del mapa.";
     return;
   }
 
@@ -133,16 +150,7 @@ form.addEventListener("submit", async (e) => {
   submitBtn.textContent = "Guardando…";
 
   try {
-    let imageUrl = url;
-    let storagePath = null;
-
-    if (file) {
-      imageUrl = await uploadMapImage(file, code);
-      storagePath = `maps/${code}-${Date.now()}-${file.name}`;
-    }
-
-    await addMap({ name, code, imageUrl, storagePath, active: true });
-
+    await addMap({ name, code, imageUrl, active: true });
     form.reset();
   } catch (err) {
     console.error(err);
@@ -164,7 +172,7 @@ subscribeToMaps(
       .map(
         (m) => `
       <div class="map-card" data-id="${m.id}">
-        <button type="button" class="remove-btn" title="Eliminar mapa" data-id="${m.id}" data-storage="${m.storagePath || ""}">✕</button>
+        <button type="button" class="remove-btn" title="Eliminar mapa" data-id="${m.id}">✕</button>
         <img src="${m.imageUrl}" alt="${m.name}" />
         <div class="meta">
           <div class="name">${m.name}</div>
@@ -191,18 +199,18 @@ subscribeToMaps(
 const teamForm = document.getElementById("team-form");
 const teamNameInput = document.getElementById("team-name");
 const teamLogoUrlInput = document.getElementById("team-logo-url");
-const teamLogoFileInput = document.getElementById("team-logo-file");
 const teamErrorBox = document.getElementById("team-form-error");
 const teamSubmitBtn = document.getElementById("team-submit-btn");
 const teamsGrid = document.getElementById("teams-grid");
+
+attachAutoConvert(teamLogoUrlInput);
 
 teamForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   teamErrorBox.textContent = "";
 
   const name = teamNameInput.value.trim();
-  const url = teamLogoUrlInput.value.trim();
-  const file = teamLogoFileInput.files[0];
+  const logoUrl = githubBlobToJsdelivr(teamLogoUrlInput.value.trim()) || null;
 
   if (!name) {
     teamErrorBox.textContent = "El nombre del equipo es obligatorio.";
@@ -213,16 +221,7 @@ teamForm.addEventListener("submit", async (e) => {
   teamSubmitBtn.textContent = "Guardando…";
 
   try {
-    let logoUrl = url || null;
-    let storagePath = null;
-
-    if (file) {
-      logoUrl = await uploadTeamLogo(file, name);
-      storagePath = `teams/${name}-${Date.now()}-${file.name}`;
-    }
-
-    await addTeam({ name, logoUrl, storagePath });
-
+    await addTeam({ name, logoUrl });
     teamForm.reset();
   } catch (err) {
     console.error(err);
@@ -244,7 +243,7 @@ subscribeToTeams(
       .map(
         (t) => `
       <div class="team-card" data-id="${t.id}">
-        <button type="button" class="remove-btn" title="Eliminar equipo" data-id="${t.id}" data-storage="${t.storagePath || ""}">✕</button>
+        <button type="button" class="remove-btn" title="Eliminar equipo" data-id="${t.id}">✕</button>
         <div class="logo-wrap">
           ${
             t.logoUrl
