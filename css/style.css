@@ -231,11 +231,6 @@ label {
   font-size: 15px;
   text-transform: uppercase;
 }
-.map-card .meta .code {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--muted);
-}
 
 .map-card .status-stamp {
   position: absolute;
@@ -413,11 +408,6 @@ label {
   font-weight: 700;
   font-size: 15px;
   text-transform: uppercase;
-}
-.result-map-card .meta .code {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--muted);
 }
 .result-map-card.picked { border-color: var(--pick); }
 .result-map-card.decider { border-color: var(--decider); }
