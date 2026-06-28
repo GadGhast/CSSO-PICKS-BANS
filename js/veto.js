@@ -1,11 +1,12 @@
-// CS VETO — veto.js — v14 (sin texto secundario de código en las tarjetas)
+// CS VETO — veto.js — v18 (sin cambios funcionales; admin ahora usa Google Sign-In)
 import { subscribeToMaps } from "./maps-service.js";
 import { subscribeToTeams } from "./teams-service.js";
 
 // ---------------------------------------------------------------
 // Estado
 // ---------------------------------------------------------------
-let allMaps = [];           // mapas activos cargados desde Firestore
+let allMaps = [];           // TODOS los mapas activos cargados desde Firestore
+let vetoPool = [];          // los 10 (o menos) mapas elegidos al azar para esta partida
 let allTeams = [];          // equipos cargados desde Firestore
 let selectedTeam = { A: null, B: null }; // { id, name, logoUrl } | null
 let sequence = [];          // [{ team:'A'|'B', action:'ban'|'pick'|'decider' }]
@@ -181,6 +182,21 @@ function validateSetup() {
 // ---------------------------------------------------------------
 // Generar secuencia de veto según formato y cantidad de mapas
 // ---------------------------------------------------------------
+const VETO_POOL_SIZE = 10;
+
+/**
+ * Devuelve hasta `n` mapas elegidos al azar (sin repetir) de la lista
+ * completa. Si hay menos de `n` mapas disponibles, devuelve todos.
+ */
+function pickRandomMaps(maps, n) {
+  const shuffled = [...maps];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled.slice(0, Math.min(n, shuffled.length));
+}
+
 function buildSequence(format, mapCount, firstTeam) {
   const picksNeeded = format === "bo1" ? 0 : format === "bo3" ? 2 : 4;
   let bansNeeded = mapCount - picksNeeded - 1; // el último mapa restante es el decider
@@ -215,11 +231,14 @@ startBtn.addEventListener("click", () => {
   // Siempre empieza vetando el Equipo A (local)
   const firstTeam = "A";
 
-  sequence = buildSequence(formatSelect.value, allMaps.length, firstTeam);
+  // Sortea hasta 10 mapas al azar de TODOS los agregados para esta partida
+  vetoPool = pickRandomMaps(allMaps, VETO_POOL_SIZE);
+
+  sequence = buildSequence(formatSelect.value, vetoPool.length, firstTeam);
   stepIndex = 0;
   mapState = {};
   finalResults = [];
-  allMaps.forEach((m) => (mapState[m.id] = { status: "available" }));
+  vetoPool.forEach((m) => (mapState[m.id] = { status: "available" }));
 
   setupScreen.style.display = "none";
   resultScreen.style.display = "none";
@@ -227,6 +246,7 @@ startBtn.addEventListener("click", () => {
 
   terminal.innerHTML = "";
   logLine(`sys`, `Veto iniciado — ${formatSelect.value.toUpperCase()} — ${teamNames.A.name} vs ${teamNames.B.name}`);
+  logLine(`sys`, `Pool sorteado: ${vetoPool.length} de ${allMaps.length} mapas`);
   logLine(`sys`, `Empieza: ${teamNames[firstTeam].name}`);
 
   renderGrid();
@@ -237,7 +257,7 @@ startBtn.addEventListener("click", () => {
 // Render del grid de mapas
 // ---------------------------------------------------------------
 function renderGrid() {
-  mapsGrid.innerHTML = allMaps
+  mapsGrid.innerHTML = vetoPool
     .map((m) => {
       const st = mapState[m.id];
       const classes = ["map-card"];
@@ -311,7 +331,7 @@ function onMapClick(mapId) {
   const st = mapState[mapId];
   if (st.status !== "available") return;
 
-  const map = allMaps.find((m) => m.id === mapId);
+  const map = vetoPool.find((m) => m.id === mapId);
 
   if (step.action === "ban") {
     st.status = "banned";
@@ -333,7 +353,7 @@ function onMapClick(mapId) {
 // Resolver el decider automático
 // ---------------------------------------------------------------
 function resolveDecider() {
-  const remaining = allMaps.filter((m) => mapState[m.id].status === "available");
+  const remaining = vetoPool.filter((m) => mapState[m.id].status === "available");
   if (remaining.length !== 1) {
     // Seguridad: si por algún motivo hay más de uno, no se rompe la app
     if (remaining.length === 0) return finishVeto();

@@ -1,5 +1,60 @@
 import { subscribeToMaps, addMap, deleteMap } from "./maps-service.js";
 import { subscribeToTeams, addTeam, deleteTeam } from "./teams-service.js";
+import { loginWithGoogle, logout, onAuthChange, authErrorMessage } from "./auth-service.js";
+import { ALLOWED_ADMIN_EMAILS } from "./admin-config.js";
+
+// ---------------------------------------------------------------
+// Autenticación — gatekeeper del panel de admin (Google Sign-In)
+// ---------------------------------------------------------------
+const loginScreen = document.getElementById("login-screen");
+const adminContent = document.getElementById("admin-content");
+const logoutBtn = document.getElementById("logout-btn");
+const googleLoginBtn = document.getElementById("google-login-btn");
+const loginError = document.getElementById("login-error");
+
+function isAllowedEmail(email) {
+  if (!email) return false;
+  return ALLOWED_ADMIN_EMAILS.map((e) => e.toLowerCase()).includes(email.toLowerCase());
+}
+
+onAuthChange(async (user) => {
+  if (user && isAllowedEmail(user.email)) {
+    loginScreen.style.display = "none";
+    adminContent.style.display = "block";
+    logoutBtn.style.display = "inline-block";
+    loginError.textContent = "";
+  } else if (user) {
+    // Sesión de Google válida, pero el email no está en la lista permitida.
+    loginError.textContent = `La cuenta ${user.email} no tiene permiso para administrar este sitio.`;
+    await logout();
+    loginScreen.style.display = "block";
+    adminContent.style.display = "none";
+    logoutBtn.style.display = "none";
+  } else {
+    loginScreen.style.display = "block";
+    adminContent.style.display = "none";
+    logoutBtn.style.display = "none";
+  }
+});
+
+googleLoginBtn.addEventListener("click", async () => {
+  loginError.textContent = "";
+  googleLoginBtn.disabled = true;
+
+  try {
+    await loginWithGoogle();
+    // El resultado (permitido o no) lo resuelve onAuthChange arriba.
+  } catch (err) {
+    console.error(err);
+    loginError.textContent = authErrorMessage(err);
+  } finally {
+    googleLoginBtn.disabled = false;
+  }
+});
+
+logoutBtn.addEventListener("click", async () => {
+  await logout();
+});
 
 // ---------------------------------------------------------------
 // Toast de feedback (sin alert() nativo, que algunos navegadores
