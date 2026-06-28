@@ -53,6 +53,22 @@ code {
   word-break: break-all;
 }
 
+#google-login-btn {
+  background: #ffffff;
+  color: #1f1f1f;
+  border: 1px solid #dadce0;
+  font-family: var(--font-body);
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 600;
+  font-size: 14px;
+}
+#google-login-btn:hover {
+  background: #f7f7f7;
+  border-color: #c6c6c6;
+  color: #1f1f1f;
+}
+
 h1, h2, h3, .display {
   font-family: var(--font-display);
   font-weight: 700;
