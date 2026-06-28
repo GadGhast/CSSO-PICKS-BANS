@@ -28,6 +28,8 @@ html, body {
   color: var(--text);
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  width: 100%;
 }
 
 body {
@@ -66,6 +68,8 @@ h1, h2, h3, .display {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
   padding: 18px 28px;
   border-bottom: 1px solid var(--border);
   background: linear-gradient(180deg, var(--panel), var(--bg));
@@ -107,6 +111,9 @@ h1, h2, h3, .display {
   max-width: 1180px;
   margin: 0 auto;
   padding: 32px 24px 80px;
+}
+@media (max-width: 480px) {
+  .container { padding: 20px 14px 60px; }
 }
 
 /* ---------- Buttons / inputs ---------- */
@@ -329,12 +336,15 @@ label {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px 16px;
   padding: 16px 20px;
   border: 1px solid var(--accent);
   background: linear-gradient(90deg, var(--accent-dim), transparent);
   border-radius: var(--radius);
   margin-bottom: 22px;
   transition: border-color 0.2s, background 0.2s;
+  max-width: 100%;
 }
 .turn-banner.is-ban {
   border-color: var(--ban);
@@ -392,13 +402,23 @@ label {
    ============================================================ */
 .result-grid-scroll {
   overflow-x: auto;
+  overflow-y: hidden;
+  max-width: 100%;
   padding-bottom: 6px;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x;
 }
 .result-grid {
   display: grid;
   grid-template-columns: repeat(var(--cols, 3), minmax(170px, 240px));
-  justify-content: center;
   gap: 18px;
+  /* width:fit-content + margin:auto centra la grilla cuando entra
+     completa en pantalla, pero cuando desborda el margen se reduce
+     a 0 solo y queda alineada a la izquierda con scroll empezando en 0.
+     (justify-content:center aquí rompería el scroll en Android). */
+  width: fit-content;
+  max-width: max-content;
+  margin: 0 auto;
 }
 
 .result-map-card {
@@ -606,11 +626,22 @@ footer.note {
   display: flex;
   align-items: center;
   gap: 10px;
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+}
+.turn-banner .who #turn-team {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .turn-logo {
   width: 26px; height: 26px;
   object-fit: contain;
   border-radius: 3px;
   display: none;
+  flex-shrink: 0;
 }
 .turn-logo.visible { display: inline-block; }
+
+
