@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mapas — CS VETO</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <div class="dot"></div>
+    <h1>CS<span>VETO</span></h1>
+    <span style="font-family:var(--font-mono); font-size:11px; color:var(--muted); border:1px solid var(--border); padding:2px 6px; border-radius:2px; margin-left:8px;">build v18</span>
+  </div>
+  <nav>
+    <a href="index.html">Veto en vivo</a>
+    <a href="maps.html" class="active">Mapas</a>
+    <a href="admin.html">Admin de mapas y equipos</a>
+  </nav>
+</header>
+
+<main class="container">
+  <h2 style="margin-bottom: 6px;">Mapas registrados</h2>
+  <p style="color:var(--muted); margin-top:0; margin-bottom:10px;" id="maps-count">Cargando…</p>
+  <p style="color:var(--muted); margin-top:0; margin-bottom:28px; font-size:13px;">
+    Vista de solo lectura. Cada veto sortea automáticamente
+    <strong id="pool-size-text">10</strong> de estos mapas al azar.
+    Para agregar, editar o eliminar mapas, ve al
+    <a href="admin.html">panel de Admin</a>.
+  </p>
+
+  <div id="maps-grid" class="map-grid">
+    <div class="empty-state">Cargando mapas…</div>
+  </div>
+</main>
+
+<script type="module" src="js/maps-page.js?v=18"></script>
+</body>
+</html>
